@@ -3,7 +3,7 @@ from typing import Callable
 
 DOMAIN = range(10)
 
-def dist_from_Map(map: Callable):
+def dist_from_map(map: Callable):
     """
     Define a distribution where the probabilities are uniform over all
     values that agree with mapping, zero otherwise
