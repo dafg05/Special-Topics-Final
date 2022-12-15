@@ -2,12 +2,12 @@ from constants import DOMAIN
 
 def parity_map(x):
     if x % 2 == 0:
-        return True
+        return 1
     else:
-        return False
+        return 0
 
 def true_map(x):
-    return True
+    return 1
 
 def false_map(x):
-    return False
+    return 0
