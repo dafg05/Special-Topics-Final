@@ -140,7 +140,7 @@ def no_free_lunch(algo: Callable, m: int):
         # the "convenient" distribution
         dist_i = dist_from_map(f_i, DOMAIN, c_set)
         print(dist_i)
-        loss = expected_loss(algo, dist_i, c_set)
+        loss = expected_loss(algo, dist_i, c_set, m)
         print(loss)
         if loss > maxLoss:
             maxLoss = loss
@@ -151,8 +151,9 @@ def no_free_lunch(algo: Callable, m: int):
                           d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
     print(f"A function with zero loss on that distribution:\n{f_argmax}")
-    print(f"Expected loss over subset: {maxLoss}")
+    print(f"Expected loss: {maxLoss}")
 
 
 if __name__ == "__main__":
-    no_free_lunch(maps.parity_map,2)
+    # no_free_lunch(maps.parity_map,2)
+    raise NotImplementedError
