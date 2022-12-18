@@ -2,7 +2,7 @@ import itertools
 from typing import Callable
 from constants import DOMAIN
 import random as rand
-import maps
+import algos
 
 
 def dist_from_map(f: Callable, domain, funcDomain):
@@ -57,7 +57,6 @@ def f_from_int(i: int, funcDomain):
     Define a function: funcDomain -> {0,1} from a
     bitstring
     """
-
     def new_f(x):
         if x not in funcDomain:
             return -1
@@ -67,7 +66,7 @@ def f_from_int(i: int, funcDomain):
     return new_f
 
 
-def extrapolate_f(f, newDomain, funcDomain):
+def extrapolate_f(f, newDomain):
     """
     For an f: funcDomain -> {0,1}
     Define a new function h: newDomain -> {0,1}
@@ -76,29 +75,28 @@ def extrapolate_f(f, newDomain, funcDomain):
 
     Note that funcDomain must be a subset of newDomain
     """
-    raise NotImplementedError
+    def h(x):
+        if (f(x) == -1) and (x in newDomain):
+            return 1
+        return f(x)
+    return h
 
 
-def expected_loss(algo, dist, algo_domain, m):
-    # Daniel's take:
+def exp_loss_over_convinient_dist(algo, dist, algo_domain, m):
+    """
+    A convenient distribution is defined as distribution uniform over
+    a subset C of DOMAIN. Thus, if we sample a dataset S of size m iid 
+    from a convenient distribution, 
+    it is equivalent to choosing m random elements from C.
 
-    # for subset S of size m from algo_domain (there should be k different subsets):
-    # --calculate loss_over_dist of algo(S)
-    # --add to sum
-    # endfor
-    # return 1/k * sum
+    Expected loss: mean loss of algo(S) over all possible dataset S.
+    """
     loss = 0
     subsets = list(itertools.combinations(algo_domain, m))
     k = len(subsets)
     for subset in subsets:
         loss = loss + loss_over_dist(algo(subset), algo_domain, dist)
     return loss*float(1/k)
-
-    # for mapping, prob in dist.items():
-    #     if prob != 0:
-    #         # using absolute deviation
-    #         loss = loss + abs(algo(mapping[0]) - mapping[1]) * prob
-    # return loss
 
 
 def no_free_lunch(algo: Callable, m: int):
@@ -123,16 +121,6 @@ def no_free_lunch(algo: Callable, m: int):
     from D. Should be greater than 1/4.
     """
 
-    # algorithm:
-    # Get a random subset C of X of size 2m
-    # For every possible function f_i: C -> {0,1}:
-    #   Let D_i be the "convenient" distribution for that function\
-    #   calculate expected loss of algorithm on distribution
-    #   keep track of distribution and function if max
-    # print argmax function
-    # print argmax distribution
-    # print max expected loss
-
     # Get a random subset C of X of size 2m
     c_set = rand.sample(DOMAIN, 2 * m)
     print(c_set)
@@ -148,19 +136,18 @@ def no_free_lunch(algo: Callable, m: int):
         # the "convenient" distribution
         dist_i = dist_from_map(f_i, DOMAIN, c_set)
         print(dist_i)
-        loss = expected_loss(algo, dist_i, c_set, m)
+        loss = exp_loss_over_convinient_dist(algo, dist_i, c_set, m)
         print(loss)
         if loss > maxLoss:
             maxLoss = loss
             f_argmax = f_i
             d_argmax = dist_i
-    # f_argmax = extrapolate_f(f_argmax)
+    f_argmax = extrapolate_f(f_argmax, DOMAIN)
     assert loss_over_dist(f_argmax, DOMAIN,
                           d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
     print(f"A function with zero loss on that distribution:\n{f_argmax}")
     print(f"Expected loss: {maxLoss}")
 
-
 if __name__ == "__main__":
-    no_free_lunch(maps.parity_map,2)
+    no_free_lunch(algos.parity_map,2)
