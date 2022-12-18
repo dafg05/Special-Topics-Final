@@ -85,8 +85,8 @@ def extrapolate_f(f, newDomain):
 def exp_loss_over_convinient_dist(algo, dist, algo_domain, m):
     """
     A convenient distribution is defined as distribution uniform over
-    a subset C of DOMAIN. Thus, if we sample a dataset S of size m iid 
-    from a convenient distribution, 
+    a subset C of DOMAIN. Thus, if we sample a dataset S of size m iid
+    from a convenient distribution,
     it is equivalent to choosing m random elements from C.
 
     Expected loss: mean loss of algo(S) over all possible dataset S.
@@ -146,8 +146,9 @@ def no_free_lunch(algo: Callable, m: int):
     assert loss_over_dist(f_argmax, DOMAIN,
                           d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
-    print(f"A function with zero loss on that distribution:\n{f_argmax}")
+    print(f"A function with zero loss on that distribution:", compute_mappings(f_argmax))
+
     print(f"Expected loss: {maxLoss}")
 
 if __name__ == "__main__":
-    no_free_lunch(algos.parity_map,2)
+    no_free_lunch(algos.random_algo,2)
