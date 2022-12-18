@@ -91,10 +91,8 @@ def expected_loss(algo, dist, algo_domain, m):
     subsets = list(itertools.combinations(algo_domain, m))
     k = len(subsets)
     for subset in subsets:
-        loss = loss + loss_over_dist(algo,subset,dist)
+        loss = loss + loss_over_dist(algo(subset), algo_domain, dist)
     return loss*float(1/k)
-
-
 
     # for mapping, prob in dist.items():
     #     if prob != 0:
