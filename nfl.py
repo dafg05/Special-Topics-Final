@@ -46,12 +46,21 @@ def loss_over_dist(f: Callable, domain, dist: dict):
             loss += dist[(x, not b)]
     return loss
 
+def bitString(i: int, size:int):
+    return bin(i)[2:].zfill(size)
+
 def f_from_int(i: int, funcDomain):
     """
     Define a function: funcDomain -> {0,1} from a
     bitstring
     """
-    raise NotImplementedError
+    def new_f(x):
+        if x not in funcDomain:
+            return -1
+        index = funcDomain.index(x)
+        return (i >> index) & 1
+    return new_f
+
 
 def extrapolate_f(f, newDomain, funcDomain):
     """
@@ -108,7 +117,7 @@ def no_free_lunch(algo: Callable, size: int):
     maxLoss = 0
     # For every possible function f_i: C -> {0,1}:
     for i in range(numFunctions):
-        f_i = f_from_int(i)
+        f_i = f_from_int(i, subset)
         # the "convenient" distribution
         dist_i = dist_from_map(f_i, DOMAIN, subset)
         loss = expected_loss(algo, dist_i)
