@@ -83,7 +83,13 @@ def extrapolate_f(f, newDomain, funcDomain):
 
 
 def expected_loss(algo, dist):
-    raise NotImplementedError
+    loss = 0
+    for mapping, prob in dist.items():
+        if prob != 0:
+            #using absolute deviation
+            loss = loss + abs(algo(mapping[0])-mapping[1])*prob
+    return loss
+
 
 
 def no_free_lunch(algo: Callable, size: int):
@@ -134,11 +140,12 @@ def no_free_lunch(algo: Callable, size: int):
         dist_i = dist_from_map(f_i, DOMAIN, subset)
         print(dist_i)
         loss = expected_loss(algo, dist_i)
+        print(loss)
         if loss > maxLoss:
             maxLoss = loss
             f_argmax = f_i
             d_argmax = dist_i
-    f_argmax = extrapolate_f(f_argmax)
+    #f_argmax = extrapolate_f(f_argmax)
     assert loss_over_dist(f_argmax, DOMAIN,
                           d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
