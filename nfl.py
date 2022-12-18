@@ -1,3 +1,4 @@
+import itertools
 from typing import Callable
 from constants import DOMAIN
 import random as rand
@@ -50,16 +51,19 @@ def loss_over_dist(f: Callable, domain, dist: dict):
             loss += dist[(x, not b)]
     return loss
 
+
 def f_from_int(i: int, funcDomain):
     """
     Define a function: funcDomain -> {0,1} from a
     bitstring
     """
+
     def new_f(x):
         if x not in funcDomain:
             return -1
         index = funcDomain.index(x)
         return (i >> index) & 1
+
     return new_f
 
 
@@ -83,14 +87,20 @@ def expected_loss(algo, dist, algo_domain, m):
     # --add to sum
     # endfor
     # return 1/k * sum
-    
     loss = 0
-    for mapping, prob in dist.items():
-        if prob != 0:
-            #using absolute deviation
-            loss = loss + abs(algo(mapping[0])-mapping[1])*prob
-    return loss
+    subsets = list(itertools.combinations(algo_domain, m))
+    k = len(subsets)
+    for subset in subsets:
+        loss = loss + loss_over_dist(algo,subset,dist)
+    return loss*float(1/k)
 
+
+
+    # for mapping, prob in dist.items():
+    #     if prob != 0:
+    #         # using absolute deviation
+    #         loss = loss + abs(algo(mapping[0]) - mapping[1]) * prob
+    # return loss
 
 
 def no_free_lunch(algo: Callable, m: int):
@@ -146,7 +156,7 @@ def no_free_lunch(algo: Callable, m: int):
             maxLoss = loss
             f_argmax = f_i
             d_argmax = dist_i
-    #f_argmax = extrapolate_f(f_argmax)
+    # f_argmax = extrapolate_f(f_argmax)
     assert loss_over_dist(f_argmax, DOMAIN,
                           d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
@@ -155,5 +165,4 @@ def no_free_lunch(algo: Callable, m: int):
 
 
 if __name__ == "__main__":
-    # no_free_lunch(maps.parity_map,2)
-    raise NotImplementedError
+    no_free_lunch(maps.parity_map,2)
