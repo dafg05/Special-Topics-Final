@@ -50,23 +50,16 @@ def loss_over_dist(f: Callable, domain, dist: dict):
             loss += dist[(x, not b)]
     return loss
 
-
-def bitString(i: int, size: int):
-    return bin(i)[2:].zfill(size)
-
-
 def f_from_int(i: int, funcDomain):
     """
     Define a function: funcDomain -> {0,1} from a
     bitstring
     """
-
     def new_f(x):
         if x not in funcDomain:
             return -1
         index = funcDomain.index(x)
         return (i >> index) & 1
-
     return new_f
 
 
@@ -82,7 +75,15 @@ def extrapolate_f(f, newDomain, funcDomain):
     raise NotImplementedError
 
 
-def expected_loss(algo, dist):
+def expected_loss(algo, dist, algo_domain, m):
+    # Daniel's take:
+
+    # for subset S of size m from algo_domain (there should be k different subsets):
+    # --calculate loss_over_dist of algo(S)
+    # --add to sum
+    # endfor
+    # return 1/k * sum
+    
     loss = 0
     for mapping, prob in dist.items():
         if prob != 0:
@@ -92,7 +93,7 @@ def expected_loss(algo, dist):
 
 
 
-def no_free_lunch(algo: Callable, size: int):
+def no_free_lunch(algo: Callable, m: int):
     """
     Given an algorithm, and a size m, show that there
     is a distribution D over DOMAIN x {0,1} such that:
@@ -125,21 +126,21 @@ def no_free_lunch(algo: Callable, size: int):
     # print max expected loss
 
     # Get a random subset C of X of size 2m
-    subset = rand.sample(DOMAIN, 2 * size)
-    print(subset)
-    numFunctions = 2 ** (2 * size)
+    c_set = rand.sample(DOMAIN, 2 * m)
+    print(c_set)
+    numFunctions = 2 ** (2 * m)
     print(numFunctions)
     f_argmax = None
     d_argmax = None
     maxLoss = 0
     # For every possible function f_i: C -> {0,1}:
     for i in range(numFunctions):
-        f_i = f_from_int(i, subset)
+        f_i = f_from_int(i, c_set)
         print(f_i)
         # the "convenient" distribution
-        dist_i = dist_from_map(f_i, DOMAIN, subset)
+        dist_i = dist_from_map(f_i, DOMAIN, c_set)
         print(dist_i)
-        loss = expected_loss(algo, dist_i)
+        loss = expected_loss(algo, dist_i, c_set)
         print(loss)
         if loss > maxLoss:
             maxLoss = loss
@@ -150,7 +151,7 @@ def no_free_lunch(algo: Callable, size: int):
                           d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
     print(f"A function with zero loss on that distribution:\n{f_argmax}")
-    print(f"Expected loss: {maxLoss}")
+    print(f"Expected loss over subset: {maxLoss}")
 
 
 if __name__ == "__main__":
