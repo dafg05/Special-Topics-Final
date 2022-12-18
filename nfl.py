@@ -1,6 +1,8 @@
 from typing import Callable
 from constants import DOMAIN
 import random as rand
+import maps
+
 
 def dist_from_map(f: Callable, domain, funcDomain):
     """
@@ -13,17 +15,18 @@ def dist_from_map(f: Callable, domain, funcDomain):
 
     Note that funcDomain must be a subset of newDomain
     """
-    p = 1/len(funcDomain) 
+    p = 1 / len(funcDomain)
     dist = {}
     for x in domain:
         b = f(x)
-        if b == -1: # if f is not defined for that point
-            dist[(x, b)] = 0
-            dist[(x, not b)] = 0
+        if b == -1:  # if f is not defined for that point
+            dist[(x, 0)] = 0
+            dist[(x, 1)] = 0
         else:
             dist[(x, b)] = p
-            dist[(x, not b)] = 0
+            dist[(x, int(not b))] = 0
     return dist
+
 
 def compute_mappings(f: Callable):
     """
@@ -34,38 +37,43 @@ def compute_mappings(f: Callable):
         mappings[x] = f(x)
     return mappings
 
+
 def loss_over_dist(f: Callable, domain, dist: dict):
     """
-    Sum of all instances of joint distribution 
+    Sum of all instances of joint distribution
     that don't agree with map
     """
     loss = 0
     for x in domain:
         b = f(x)
-        if b >= 0: # if f is defined at x
+        if b >= 0:  # if f is defined at x
             loss += dist[(x, not b)]
     return loss
 
-def bitString(i: int, size:int):
+
+def bitString(i: int, size: int):
     return bin(i)[2:].zfill(size)
+
 
 def f_from_int(i: int, funcDomain):
     """
     Define a function: funcDomain -> {0,1} from a
     bitstring
     """
+
     def new_f(x):
         if x not in funcDomain:
             return -1
         index = funcDomain.index(x)
         return (i >> index) & 1
+
     return new_f
 
 
 def extrapolate_f(f, newDomain, funcDomain):
     """
     For an f: funcDomain -> {0,1}
-    Define a new function h: newDomain -> {0,1} 
+    Define a new function h: newDomain -> {0,1}
     s.t. the functions are identical except that
     h is defined for points in newDomain but not in funcDomain
 
@@ -73,8 +81,10 @@ def extrapolate_f(f, newDomain, funcDomain):
     """
     raise NotImplementedError
 
+
 def expected_loss(algo, dist):
     raise NotImplementedError
+
 
 def no_free_lunch(algo: Callable, size: int):
     """
@@ -87,14 +97,14 @@ def no_free_lunch(algo: Callable, size: int):
     @param
     algo: an algorithm that takes in a dataset and outputs a function from DOMAIN to {0,1}
     size: cardinality of S, must be less than size of DOMAIN/2
-    
+
     @return
     nothing
 
     @print
     - Distribution D at which our learner sucks at
     - A function with zero loss on D
-    - Expected loss algo(S), where S is drawn 
+    - Expected loss algo(S), where S is drawn
     from D. Should be greater than 1/4.
     """
 
@@ -108,28 +118,33 @@ def no_free_lunch(algo: Callable, size: int):
     # print argmax distribution
     # print max expected loss
 
-
     # Get a random subset C of X of size 2m
     subset = rand.sample(DOMAIN, 2 * size)
-    numFunctions = 2 **(2* size)
+    print(subset)
+    numFunctions = 2 ** (2 * size)
+    print(numFunctions)
     f_argmax = None
     d_argmax = None
     maxLoss = 0
     # For every possible function f_i: C -> {0,1}:
     for i in range(numFunctions):
         f_i = f_from_int(i, subset)
+        print(f_i)
         # the "convenient" distribution
         dist_i = dist_from_map(f_i, DOMAIN, subset)
+        print(dist_i)
         loss = expected_loss(algo, dist_i)
         if loss > maxLoss:
             maxLoss = loss
             f_argmax = f_i
-            d_argmax =  dist_i
+            d_argmax = dist_i
     f_argmax = extrapolate_f(f_argmax)
-    assert loss_over_dist(f_argmax, DOMAIN, d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
+    assert loss_over_dist(f_argmax, DOMAIN,
+                          d_argmax) == 0, "The extrapolated function does not have zero loss on distribution"
     print(f"Our prized distribution:\n{d_argmax}")
     print(f"A function with zero loss on that distribution:\n{f_argmax}")
     print(f"Expected loss: {maxLoss}")
 
+
 if __name__ == "__main__":
-    raise NotImplementedError
+    no_free_lunch(maps.parity_map,2)
