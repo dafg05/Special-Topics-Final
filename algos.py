@@ -2,8 +2,6 @@ from constants import DOMAIN
 from nfl import f_from_int
 import random as rand
 
-# TODO: rename to algorithms.py
-
 def always_one_algo(S):
     def f(x):
         return 1
